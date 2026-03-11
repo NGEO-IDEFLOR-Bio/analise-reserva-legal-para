@@ -99,7 +99,11 @@ imoveis_elegiveis <- imoveis %>%
     elegivel_final = criterio_uc | criterio_zee,
     
     # Delta regularizacao validado (so conta se elegivel)
-    delta_validado = if_else(elegivel_final, delta_reg, 0)
+    delta_validado = if_else(elegivel_final, delta_reg, 0),
+    
+    # Passivo Consolidado: deficit que ja existia antes de 2008
+    # area_ha * 0.8 (exigencia RL) - veg08_ha (vegetacao em 2008)
+    passivo_consolidado = pmax(0, area_ha * 0.8 - veg08_ha)
   )
 
 # 7. EXTRACAO DE METRICAS DE IMPACTO ----
@@ -110,6 +114,7 @@ resumo_estado <- imoveis_elegiveis %>%
     deficit_50_total_ha = sum(def_50_ha, na.rm = TRUE),
     reducao_deficit_ha = deficit_80_total_ha - deficit_50_total_ha,
     passivo_nao_consolidado_ha = sum(pass_n_con, na.rm = TRUE),
+    passivo_consolidado_ha = sum(passivo_consolidado, na.rm = TRUE),
     total_imoveis = n(),
     imoveis_beneficiados = sum(beneficia == "Sim", na.rm = TRUE),
     imoveis_elegiveis_beneficio = sum(elegivel_final & delta_validado > 0, na.rm = TRUE),
@@ -124,8 +129,16 @@ ranking_municipal <- imoveis_elegiveis %>%
     imoveis = n(),
     .groups = "drop"
   ) %>%
-  arrange(desc(delta_validado_total)) %>%
-  head(10)
+  arrange(desc(delta_validado_total))
+
+# Ranking completo (sem limite)
+ranking_completo <- ranking_municipal
+
+# Ranking com delta > 0 (municipios elegiveis)
+ranking_elegiveis <- ranking_completo %>% filter(delta_validado_total > 0)
+
+# Ranking top 10 para grafico
+ranking_top10 <- ranking_completo %>% head(10)
 
 # Configuracao de temas para graficos com fundo branco e padrao ABNT
 theme_set(theme_minimal(base_size = 12))
@@ -180,16 +193,75 @@ paleta_ranking <- c(
   "#FFD8A8", "#E9A20E", "#B8731E", "#5D3A1A", "#8B4513"
 )
 
-grafico_ranking <- ranking_municipal %>%
+# Grafico 2: Ranking dos municipios elegiveis (delta > 0)
+# 33 municipios elegiveis
+n_elegiveis <- 33
+altura_ranking <- n_elegiveis * 0.6
+
+# Preparar dados com logica de rotulo
+ranking_elegiveis_plot <- ranking_elegiveis %>%
+  mutate(
+    label_ha = scales::label_number(scale = 1e-3, suffix = "k ha", decimal.mark = ",", big.mark = ".")(delta_validado_total),
+    label_fora = delta_validado_total > (max(delta_validado_total) * 0.7)
+  )
+
+grafico_ranking <- ranking_elegiveis_plot %>%
   ggplot(aes(x = reorder(municipio, delta_validado_total), y = delta_validado_total, fill = delta_validado_total)) +
   geom_col(width = 0.7) +
   scale_fill_gradientn(colors = c('#5D3A1A', '#FFEBCD', '#006400')) +
-  coord_flip() +
-  geom_text(aes(label = scales::label_number(scale = 1e-3, suffix = "k ha", decimal.mark = ",", big.mark = ".")(delta_validado_total)),
-            hjust = -0.1, size = 3.5, family = "serif") +
-  scale_x_discrete(expand = expansion(mult = c(0, 0.2))) +
+  coord_flip(clip = "off") +
+  geom_text(
+    data = subset(ranking_elegiveis_plot, label_fora == FALSE),
+    aes(label = label_ha),
+    hjust = -0.1, size = 3.5, family = "serif"
+  ) +
+  geom_text(
+    data = subset(ranking_elegiveis_plot, label_fora == TRUE),
+    aes(label = label_ha),
+    hjust = 1, size = 3.5, family = "serif", color = "white", fontface = "bold"
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0, 0.02))) +
   scale_y_continuous(
-    expand = expansion(mult = c(0, 0.2)),
+    expand = expansion(mult = c(0, 0.02)),
+    labels = scales::label_number(scale = 1e-3, suffix = "k ha", decimal.mark = ",", big.mark = ".")
+  ) +
+  labs(
+    title = "Municipios Elegiveis - Ganho de Area Regularizada",
+    subtitle = "Delta valido (elegivel por UC >50% ou ZEE-PA)",
+    x = NULL,
+    y = "Area (hectares)"
+  ) +
+  tema_abnt
+
+ggsave(paste0(dir_output, "/grafico_ranking_municipal.jpg"), grafico_ranking, 
+      width = 10, height = altura_ranking, dpi = 300, bg = "white")
+
+# Grafico 2b: Top 10 municipios por ganho de area
+# Rotulo dentro da coluna se o espaco for insuficiente
+ranking_top10_plot <- ranking_top10 %>%
+  mutate(
+    label_ha = scales::label_number(scale = 1e-3, suffix = "k ha", decimal.mark = ",", big.mark = ".")(delta_validado_total),
+    label_fora = delta_validado_total > (max(delta_validado_total) * 0.7)
+  )
+
+grafico_top10 <- ranking_top10_plot %>%
+  ggplot(aes(x = reorder(municipio, delta_validado_total), y = delta_validado_total, fill = delta_validado_total)) +
+  geom_col(width = 0.7) +
+  scale_fill_gradientn(colors = c('#5D3A1A', '#FFEBCD', '#006400')) +
+  coord_flip(clip = "off") +
+  geom_text(
+    data = subset(ranking_top10_plot, label_fora == FALSE),
+    aes(label = label_ha),
+    hjust = -0.1, size = 3.5, family = "serif"
+  ) +
+  geom_text(
+    data = subset(ranking_top10_plot, label_fora == TRUE),
+    aes(label = label_ha),
+    hjust = 1, size = 3.5, family = "serif", color = "white", fontface = "bold"
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0, 0.02))) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.02)),
     labels = scales::label_number(scale = 1e-3, suffix = "k ha", decimal.mark = ",", big.mark = ".")
   ) +
   labs(
@@ -200,7 +272,7 @@ grafico_ranking <- ranking_municipal %>%
   ) +
   tema_abnt
 
-ggsave(paste0(dir_output, "/grafico_ranking_municipal.jpg"), grafico_ranking, 
+ggsave(paste0(dir_output, "/grafico_ranking_top10.jpg"), grafico_top10, 
       width = 10, height = 6, dpi = 300, bg = "white")
 
 # Grafico 3: Distribuicao do passivo nao consolidado
@@ -238,6 +310,40 @@ grafico_passivo <- passivo_dados %>%
 ggsave(paste0(dir_output, "/grafico_passivo_nao_consolidado.jpg"), grafico_passivo, 
       width = 10, height = 6, dpi = 300, bg = "white")
 
+# Grafico 4: Distribuicao do passivo consolidado (pre-2008)
+passivo_con_dados <- imoveis_elegiveis %>% filter(passivo_consolidado > 0)
+passivo_con_stats <- passivo_con_dados %>%
+  summarise(media = mean(passivo_consolidado), mediana = median(passivo_consolidado), p95 = quantile(passivo_consolidado, 0.95))
+
+limite_x_con <- passivo_con_stats$p95
+
+grafico_passivo_con <- passivo_con_dados %>%
+  ggplot(aes(x = passivo_consolidado)) +
+  geom_histogram(binwidth = 50, fill = "#228B22", color = "white", alpha = 0.7) +
+  geom_density(aes(y = ..count.. * 50), fill = "gray", alpha = 0.2, color = NA) +
+  geom_vline(xintercept = passivo_con_stats$mediana, linetype = "dashed", color = "#2C3E50", size = 1) +
+  annotate("text", x = passivo_con_stats$mediana, y = Inf, 
+           label = paste("Mediana:", round(passivo_con_stats$mediana), "ha"),
+           vjust = 2, hjust = -0.1, color = "#2C3E50", size = 3.5, family = "serif") +
+  coord_cartesian(xlim = c(0, limite_x_con)) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0, 0.05)),
+    labels = scales::label_number(scale = 1, suffix = " ha", decimal.mark = ",", big.mark = ".")
+  ) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    title = "Distribuicao do Passivo Consolidado",
+    subtitle = paste("Deficit pre-existente (antes de 2008) - Limite:", round(limite_x_con), "ha (percentil 95)"),
+    x = "Passivo consolidado (ha)",
+    y = "Frequencia de imoveis"
+  ) +
+  tema_abnt
+
+ggsave(paste0(dir_output, "/grafico_passivo_consolidado.jpg"), grafico_passivo_con, 
+      width = 10, height = 6, dpi = 300, bg = "white")
+
 # 10. RELATORIO FINAL ----
 cat("\n")
 cat("================================================================================\n")
@@ -257,6 +363,8 @@ cat(sprintf("  - Reducao do deficit:                       %s ha\n",
             scales::number(resumo_estado$reducao_deficit_ha, big.mark = ".", decimal.mark = ",")))
 cat(sprintf("  - Passivo nao consolidado (pos-2008):      %s ha\n",
             scales::number(resumo_estado$passivo_nao_consolidado_ha, big.mark = ".", decimal.mark = ",")))
+cat(sprintf("  - Passivo consolidado (pre-2008):         %s ha\n",
+            scales::number(resumo_estado$passivo_consolidado_ha, big.mark = ".", decimal.mark = ",")))
 cat("--------------------------------------------------------------------------------\n")
 cat(sprintf("  - Total de imoveis analisados:              %s\n",
             scales::number(resumo_estado$total_imoveis, big.mark = ".")))
@@ -270,11 +378,15 @@ cat("===========================================================================
 
 # Exportar dados processados
 write_csv(imoveis_elegiveis, paste0(dir_output, "/resultados_elegibilidade.csv"))
-write_csv(ranking_municipal, paste0(dir_output, "/ranking_municipal.csv"))
+write_csv(ranking_elegiveis, paste0(dir_output, "/ranking_municipal.csv"))
+write_csv(ranking_completo, paste0(dir_output, "/ranking_municipal_completo.csv"))
 
 cat("\nArquivos gerados em output/:\n")
 cat("  - grafico_deficit_cenarios.jpg\n")
-cat("  - grafico_ranking_municipal.jpg\n")
+cat("  - grafico_ranking_municipal.jpg (delta > 0)\n")
+cat("  - grafico_ranking_top10.jpg (top 10)\n")
 cat("  - grafico_passivo_nao_consolidado.jpg\n")
+cat("  - grafico_passivo_consolidado.jpg\n")
 cat("  - resultados_elegibilidade.csv\n")
-cat("  - ranking_municipal.csv\n")
+cat("  - ranking_municipal.csv (delta > 0)\n")
+cat("  - ranking_municipal_completo.csv\n")
