@@ -1,0 +1,20 @@
+# IDEFLOR-Bio - Analise Reserva Legal
+
+# Dados brutos (manter no repositorio apenas referencias)
+materiais/sicar_pa_acima_4mf.zip
+materiais/ti_homologadas_uc_uso-e-dominio-publico.xlsx
+
+# Arquivos de output
+output/
+
+# R
+.Rhistory
+.Rproj.user/
+*.Rproj
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Arquivos temporarios
+~$*
