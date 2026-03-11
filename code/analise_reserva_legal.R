@@ -1,7 +1,7 @@
 # ==============================================================================
 # Script de Analise Geoestatistica - Reserva Legal Para (Art. 12, Lei 12.651/2012)
-# PAE no 2025/2587584 - IDEFLOR-Bio
-# Autoria: Coordenacao de Geotecnologia
+# Base do CAR - PAE no 2025/2587584 - IDEFLOR-Bio
+# Autoria: Coordenacao de Geotecnologias
 # ==============================================================================
 
 # Configuracao de Diretorios ----
