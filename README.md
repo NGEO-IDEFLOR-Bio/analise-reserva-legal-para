@@ -11,11 +11,13 @@ Objetivo: Medir o potencial de transicao do passivo consolidado para a conformid
 ```
 ├── code/
 │   ├── analise_reserva_legal.R      # Script principal (tidyverse)
+│   ├── analise_passivo.R            # Analise de passivo consolidado vs nao consolidado
 │   ├── analise-car-gee.js           # Codigo GEE para extracao de dados
 │   ├── total_delta_reg_ha.py        # Calculo de delta por hectare
-│   └── total_delta_reg_mun_alvo.py  # Calculo de delta por municipio alvo
+│   └── total_delta_reg_mun_alvo.py # Calculo de delta por municipio alvo
 ├── docs/
-│   └── contrato-analise.md          # Documento de diretrizes
+│   ├── contrato-analise.md          # Documento de diretrizes
+│   └── analise_passivo.md          # Documentacao da analise de passivo
 ├── materiais/
 │   ├── Impacto_Reducao_RL_Para_Acima_4MF.csv
 │   ├── ti_homologadas_uc_uso-e-dominio-publico.csv
@@ -39,6 +41,11 @@ Objetivo: Medir o potencial de transicao do passivo consolidado para a conformid
 Rscript code/analise_reserva_legal.R
 ```
 
+### Analise de Passivo (R)
+```bash
+Rscript code/analise_passivo.R
+```
+
 ### Scripts Python
 ```bash
 python code/total_delta_reg_ha.py
@@ -46,6 +53,8 @@ python code/total_delta_reg_mun_alvo.py
 ```
 
 ## Produtos
+
+### Analise Principal (analise_reserva_legal.R)
 
 - `grafico_deficit_cenarios.jpg` - Comparativo de deficit 80% vs 50%
 - `grafico_ranking_municipal.jpg` - Municipios elegiveis (delta > 0)
@@ -55,6 +64,15 @@ python code/total_delta_reg_mun_alvo.py
 - `resultados_elegibilidade.csv` - Base completa com flag de elegibilidade
 - `ranking_municipal.csv` - Ranking municipios elegiveis
 - `ranking_municipal_completo.csv` - Ranking completo (todos os municipios)
+
+### Analise de Passivo (analise_passivo.R)
+
+- `grafico_pizza_passivo_nao_con.jpg` - Proporcao com/sem passivo nao consolidado
+- `grafico_categoria_passivo.jpg` - Distribuicao por categoria de passivo
+- `grafico_delta_passivo.jpg` - Delta medio por status
+- `resultados_classificacao_passivo.csv` - Base com flags de passivo
+- `resumo_status_imoveis.csv` - Resumo por status
+- `dist_categoria_passivo.csv` - Distribuicao por categoria
 
 ## Base Legal
 

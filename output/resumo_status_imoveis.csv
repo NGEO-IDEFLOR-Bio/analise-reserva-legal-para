@@ -1,0 +1,6 @@
+status_imovel,quantidade,area_total_ha,delta_reg_total
+Nao Elegivel,14442,26691475.217,2769233.819204659
+Elegivel - Apenas Passivo Nao Consolidado,5172,10098141.5541,386496.6677819159
+Elegivel - Apenas Passivo Consolidado,4838,9097159.7559,1374062.1112580313
+Elegivel - Ambos Passivos,3951,4892687.7471,1273221.8991158712
+Elegivel - Sem Passivo,2564,15390158.1773,0
