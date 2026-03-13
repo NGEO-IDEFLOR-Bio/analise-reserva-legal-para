@@ -62,24 +62,7 @@ if (nrow(imoveis_sem_uc) > 0) {
   print(imoveis_sem_uc %>% count(municipio_clean) %>% head(20))
 }
 
-# 5. DEFINICAO DAS ZONAS DO ZEE-PA ----
-# Zonas elegiveis conforme Art. 12 e ZEE-PA: Oeste, Leste e Calha Norte
-# JA normalizados (sem acentos)
-zonas_zee_elegiveis <- c(
-  "ALTAMIRA", "ITAITUBA", "TRAIRAO", "NOVO PROGRESSO",
-  "ITAUPIRANGA", "MARABA", "PARAGOMINAS", "REDENCAO",
-  "OURILANDIA DO NORTE", "TUCUMA", "SAO FELIX DO XINGU",
-  "XINGUARA", "CONCEICAO DO ARAGUAIA", "BREJO GRANDE DO ARAGUAIA",
-  "CANAA DOS CARAJA", "PARAUAPEBAS", "JACAREACANGA",
-  "SENADOR JOSE PORFIRIO", "PORTO DE MOZ", "ORIXIMINA",
-  "OBIDOS", "MONTE ALEGRE", "AVEIRO", "FARO",
-  "BELTERRA", "SANTAREM", "RUROPOLIS", "MEDICILANDIA",
-  "NOVO REPARTIMENTO", "PACAJA", "CURIONOPOLIS",
-  "ELDORADO DOS CARAJAS", "RONDON DO PARA", "OURILANDIA",
-  "FLORESTA DO ARAGUAIA"
-)
-
-# 6. VALIDACAO JURIDICA - CRITERIO DE ELEGIBILIDADE ----
+# 5. VALIDACAO JURIDICA - CRITERIO DE ELEGIBILIDADE ----
 imoveis_elegiveis <- imoveis %>%
   left_join(
     ucs %>% select(municipio_clean, percentual, x50),
@@ -89,14 +72,11 @@ imoveis_elegiveis <- imoveis %>%
     # Tratar NAs explicitly
     percentual = coalesce(percentual, 0),
     
-    # Criterio 1: Municipio com >50% de areas protegidas
+    # Criterio: Municipio com >50% de areas protegidas
     criterio_uc = percentual > 50,
     
-    # Criterio 2: Municipio em zona elegivel do ZEE-PA
-    criterio_zee = municipio_clean %in% zonas_zee_elegiveis,
-    
-    # Elegibilidade final: satisfaz pelo menos um criterio
-    elegivel_final = criterio_uc | criterio_zee,
+    # Elegibilidade final: satisfaz o criterio de UC
+    elegivel_final = criterio_uc,
     
     # Delta regularizacao validado (so conta se elegivel)
     delta_validado = if_else(elegivel_final, delta_reg, 0),
@@ -106,7 +86,7 @@ imoveis_elegiveis <- imoveis %>%
     passivo_consolidado = pmax(0, area_ha * 0.8 - veg08_ha)
   )
 
-# 7. EXTRACAO DE METRICAS DE IMPACTO ----
+# 6. EXTRACAO DE METRICAS DE IMPACTO ----
 resumo_estado <- imoveis_elegiveis %>%
   summarise(
     delta_total_ha = sum(delta_validado, na.rm = TRUE),
@@ -121,7 +101,7 @@ resumo_estado <- imoveis_elegiveis %>%
     imoveis_conformidade_total = sum(def_50_ha == 0 & def_80_ha > 0, na.rm = TRUE)
   )
 
-# 8. ANALISE MUNICIPAL ----
+# 7. ANALISE MUNICIPAL ----
 ranking_municipal <- imoveis_elegiveis %>%
   group_by(municipio) %>%
   summarise(
@@ -159,7 +139,7 @@ tema_abnt <- theme(
   axis.text = element_text(size = 10)
 )
 
-# 9. VISUALIZACOES ACADEMICAS ----
+# 8. VISUALIZACOES ACADEMICAS ----
 
 # Grafico 1: Comparativo de deficit total por cenario (80% vs 50%)
 grafico_deficit <- tibble(
@@ -227,7 +207,7 @@ grafico_ranking <- ranking_elegiveis_plot %>%
   ) +
   labs(
     title = "Municipios Elegiveis - Ganho de Area Regularizada",
-    subtitle = "Delta valido (elegivel por UC >50% ou ZEE-PA)",
+    subtitle = "Delta valido (elegivel por UC >50%)",
     x = NULL,
     y = "Area (hectares)"
   ) +
@@ -266,7 +246,7 @@ grafico_top10 <- ranking_top10_plot %>%
   ) +
   labs(
     title = "Top 10 Municipios - Ganho de Area Regularizada",
-    subtitle = "Delta valido (elegivel por UC >50% ou ZEE-PA)",
+    subtitle = "Delta valido (elegivel por UC >50%)",
     x = NULL,
     y = "Area (hectares)"
   ) +
@@ -344,7 +324,7 @@ grafico_passivo_con <- passivo_con_dados %>%
 ggsave(paste0(dir_output, "/grafico_passivo_consolidado.jpg"), grafico_passivo_con, 
       width = 10, height = 6, dpi = 300, bg = "white")
 
-# 10. RELATORIO FINAL ----
+# 9. RELATORIO FINAL ----
 cat("\n")
 cat("================================================================================\n")
 cat("   RELATORIO DE ANALISE - RESERVA LEGAL PARA (Art. 12, Lei 12.651/2012)\n")

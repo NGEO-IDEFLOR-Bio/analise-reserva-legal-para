@@ -17,7 +17,8 @@ Objetivo: Medir o potencial de transicao do passivo consolidado para a conformid
 │   └── total_delta_reg_mun_alvo.py # Calculo de delta por municipio alvo
 ├── docs/
 │   ├── contrato-analise.md          # Documento de diretrizes
-│   └── analise_passivo.md          # Documentacao da analise de passivo
+│   ├── analise_passivo.md           # Documentacao da analise de passivo
+│   └── faq.md                       # FAQ tecnico e juridico
 ├── materiais/
 │   ├── Impacto_Reducao_RL_Para_Acima_4MF.csv
 │   ├── ti_homologadas_uc_uso-e-dominio-publico.csv
@@ -78,7 +79,6 @@ python code/total_delta_reg_mun_alvo.py
 
 - Lei nº 12.651/2012 (Codigo Florestal) - Art. 12
 - PAE nº 2025/2587584 - IDEFLOR-Bio
-- Zoneamento Economico-Ecologico do Estado do Para (ZEE-PA)
 
 ## Dados de Entrada
 

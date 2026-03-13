@@ -46,22 +46,7 @@ ucs <- ucs %>%
 ucs <- ucs %>%
   mutate(percentual = as.numeric(percentual))
 
-# 4. DEFINICAO DAS ZONAS DO ZEE-PA ----
-zonas_zee_elegiveis <- c(
-  "ALTAMIRA", "ITAITUBA", "TRAIRAO", "NOVO PROGRESSO",
-  "ITAUPIRANGA", "MARABA", "PARAGOMINAS", "REDENCAO",
-  "OURILANDIA DO NORTE", "TUCUMA", "SAO FELIX DO XINGU",
-  "XINGUARA", "CONCEICAO DO ARAGUAIA", "BREJO GRANDE DO ARAGUAIA",
-  "CANAA DOS CARAJA", "PARAUAPEBAS", "JACAREACANGA",
-  "SENADOR JOSE PORFIRIO", "PORTO DE MOZ", "ORIXIMINA",
-  "OBIDOS", "MONTE ALEGRE", "AVEIRO", "FARO",
-  "BELTERRA", "SANTAREM", "RUROPOLIS", "MEDICILANDIA",
-  "NOVO REPARTIMENTO", "PACAJA", "CURIONOPOLIS",
-  "ELDORADO DOS CARAJAS", "RONDON DO PARA", "OURILANDIA",
-  "FLORESTA DO ARAGUAIA"
-)
-
-# 5. CLASSIFICACAO DE ELEGIBILIDADE E PASSIVO ----
+# 4. CLASSIFICACAO DE ELEGIBILIDADE E PASSIVO ----
 imoveis_classif <- imoveis %>%
   left_join(
     ucs %>% select(municipio_clean, percentual),
@@ -70,8 +55,7 @@ imoveis_classif <- imoveis %>%
   mutate(
     percentual = coalesce(percentual, 0),
     criterio_uc = percentual > 50,
-    criterio_zee = municipio_clean %in% zonas_zee_elegiveis,
-    elegivel = criterio_uc | criterio_zee,
+    elegivel = criterio_uc,
     
     # Classificacao do passivo
     tem_passivo_nao_con = pass_n_con > 0,
@@ -97,9 +81,9 @@ imoveis_classif <- imoveis %>%
     )
   )
 
-# 6. ANALISES ----
+# 5. ANALISES ----
 
-# 6.1 Resumo geral por status
+# 5.1 Resumo geral por status
 cat("\n================================================================================\n")
 cat("   ANALISE DE PASSIVO CONSOLIDADO VS NAO CONSOLIDADO\n")
 cat("   PAE no 2025/2587584 - IDEFLOR-Bio\n")
@@ -120,7 +104,7 @@ cat("---------------------------------------------------------------------------
 print(resumo_status)
 cat("\n")
 
-# 6.2 Imoveis elegiveis: com vs sem passivo nao consolidado
+# 5.2 Imoveis elegiveis: com vs sem passivo nao consolidado
 cat("IMOVEIS ELEGIVEIS - COM VS SEM PASSIVO NAO CONSOLIDADO:\n")
 cat("--------------------------------------------------------------------------------\n")
 
@@ -138,7 +122,7 @@ elegiveis_passivo <- imoveis_classif %>%
 print(elegiveis_passivo)
 cat("\n")
 
-# 6.3 Distribuicao por categoria de passivo nao consolidado (elegiveis)
+# 5.3 Distribuicao por categoria de passivo nao consolidado (elegiveis)
 cat("DISTRIBUICAO POR CATEGORIA DE PASSIVO NAO CONSOLIDADO (ELEGIVEIS):\n")
 cat("--------------------------------------------------------------------------------\n")
 
@@ -155,7 +139,7 @@ dist_passivo <- imoveis_classif %>%
 print(dist_passivo)
 cat("\n")
 
-# 6.4 Percentual de imoveis elegiveis com passivo nao consolidado
+# 5.4 Percentual de imoveis elegiveis com passivo nao consolidado
 total_elegiveis <- sum(imoveis_classif$elegivel)
 com_passivo_nao_con <- sum(imoveis_classif$elegivel & imoveis_classif$tem_passivo_nao_con)
 sem_passivo_nao_con <- total_elegiveis - com_passivo_nao_con
@@ -171,7 +155,7 @@ cat(sprintf("  Sem passivo nao consolidado:            %s (%.1f%%)\n",
             sem_passivo_nao_con / total_elegiveis * 100))
 cat("================================================================================\n")
 
-# 7. GRAFICOS ----
+# 6. GRAFICOS ----
 theme_set(theme_minimal(base_size = 12))
 theme_update(
   text = element_text(family = "serif"),
@@ -262,7 +246,7 @@ grafico_delta <- delta_por_status %>%
 ggsave(paste0(dir_output, "/grafico_delta_passivo.jpg"), grafico_delta, 
       width = 8, height = 6, dpi = 300, bg = "white")
 
-# 8. EXPORTAR DADOS ----
+# 7. EXPORTAR DADOS ----
 write_csv(imoveis_classif, paste0(dir_output, "/resultados_classificacao_passivo.csv"))
 write_csv(resumo_status, paste0(dir_output, "/resumo_status_imoveis.csv"))
 write_csv(dist_passivo, paste0(dir_output, "/dist_categoria_passivo.csv"))

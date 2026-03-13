@@ -17,7 +17,7 @@ Nem todo imóvel que o GEE marcou como `beneficia == 'Sim'` terá o benefício v
 
 * **Filtro Art. 12:** Criar uma coluna lógica `elegivel_final`.
 * 
-**Critério:** O imóvel deve estar em um município com `Percentual > 50` (áreas protegidas) OU estar nas zonas delimitadas pelo ZEE-PA (Oeste, Leste e Calha Norte).
+**Critério:** O imóvel deve estar em um município com mais de 50% de áreas protegidas (Unidades de Conservação de Uso Público ou Terras Indígenas Homologadas).
 
 
 

@@ -22,9 +22,8 @@ A diferenciacao entre passivo consolidado e nao consolidado e fundamental para:
 
 ### Classificacao de Elegibilidade
 
-Um imovel e considerado elegivel se atender a pelo menos um criterio:
-- Municipio com mais de 50% de area em Unidades de Conservacao (UC)
-- Municipio localizado em zona elegivel do ZEE-PA (Oeste, Leste, Calha Norte)
+Um imovel e considerado elegivel se:
+- Municipio com mais de 50% de area em Unidades de Conservacao (UC) ou Terras Indigenas (TI)
 
 ### Categorias de Passivo Nao Consolidado
 
